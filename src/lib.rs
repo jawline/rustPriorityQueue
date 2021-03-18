@@ -39,12 +39,18 @@ impl <R, T: PriorityValue>PriorityQueue<R, T> {
 
   /** Returns the best child (if there are any) to swap when restoring the heap property for a parent */
   fn best_child(&self, idx: usize) -> Option<usize> {
+
+    // Find the children of this node
     let (child1, child2) = self.children(idx);
+
+    // Get the length of the data array
     let len = self.data.len();
-    if len < child1 {
+
+    // Since child2 > child1, we know that if child1 doesn't exist then child2 doesn't exist
+    if len <= child1 {
       // If there are no children then return none
       None
-    } else if len < child2 {
+    } else if len <= child2 {
       // If there is only child1 then take child1
       Some(child1)
     } else {
@@ -108,9 +114,9 @@ impl <R, T: PriorityValue>PriorityQueue<R, T> {
     let mut idx = 0;
 
     while idx < heap_len {
+
       // Find the best candidate for swapping (in a minimize heap the highest value child, in a maximize heap the lowest value child)
       if let Some(child) = self.best_child(idx) {
-
         // If it violates the heap property then swap it out
         if self.violates_heap_property(idx, child) {
           self.data.swap(idx, child);
@@ -131,4 +137,17 @@ impl <R, T: PriorityValue>PriorityQueue<R, T> {
 
 #[cfg(test)]
 mod tests {
+  use super::*;
+
+  #[test]
+  fn simple_queue() {
+    let mut queue = PriorityQueue::new(100, PriorityMode::MaximizeHead);
+    queue.insert(1, 10);
+    queue.insert(2, 20);
+    queue.insert(3, 30);
+    assert_eq!(queue.take().unwrap(), 3);
+    assert_eq!(queue.take().unwrap(), 2);
+    assert_eq!(queue.take().unwrap(), 1);
+  }
+
 }
