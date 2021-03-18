@@ -117,6 +117,7 @@ impl <R, T: PriorityValue>PriorityQueue<R, T> {
 
       // Find the best candidate for swapping (in a minimize heap the highest value child, in a maximize heap the lowest value child)
       if let Some(child) = self.best_child(idx) {
+
         // If it violates the heap property then swap it out
         if self.violates_heap_property(idx, child) {
           self.data.swap(idx, child);
@@ -138,9 +139,16 @@ impl <R, T: PriorityValue>PriorityQueue<R, T> {
 #[cfg(test)]
 mod tests {
   use super::*;
+  use rand::random;
 
   #[test]
-  fn simple_queue() {
+  fn empty_queue_gives_none() {
+    let mut queue = PriorityQueue::<usize, usize>::new(100, PriorityMode::MinimizeHead);
+    assert!(queue.take().is_none());
+  }
+
+  #[test]
+  fn simple_queue_maximize() {
     let mut queue = PriorityQueue::new(100, PriorityMode::MaximizeHead);
     queue.insert(1, 10);
     queue.insert(2, 20);
@@ -150,4 +158,81 @@ mod tests {
     assert_eq!(queue.take().unwrap(), 1);
   }
 
+
+  #[test]
+  fn simple_queue_minimize() {
+    let mut queue = PriorityQueue::new(100, PriorityMode::MinimizeHead);
+    queue.insert(1, 10);
+    queue.insert(2, 20);
+    queue.insert(3, 30);
+    assert_eq!(queue.take().unwrap(), 1);
+    assert_eq!(queue.take().unwrap(), 2);
+    assert_eq!(queue.take().unwrap(), 3);
+  }
+
+  #[test]
+  fn large_queue_maximize() {
+    let mut queue = PriorityQueue::new(100, PriorityMode::MaximizeHead);
+    let size = 100000;
+
+    for i in 0..size {
+      queue.insert(i, i);
+    }
+
+    for i in 0..size {
+      assert_eq!(queue.take().unwrap(), size - i - 1);
+    }
+  }
+
+  #[test]
+  fn large_queue_minimize() {
+    let mut queue = PriorityQueue::new(100, PriorityMode::MinimizeHead);
+    let size = 100000;
+
+    for i in 0..size {
+      queue.insert(i, i);
+    }
+
+    for i in 0..size {
+      assert_eq!(queue.take().unwrap(), i);
+    }
+  }
+
+  #[test]
+  fn test_random_minimize() {
+    let mut queue = PriorityQueue::new(100, PriorityMode::MinimizeHead);
+    let size = 100000;
+
+    for _ in 0..size {
+      let rval: usize = random();
+      queue.insert(rval, rval);
+    }
+
+    let mut head = queue.take().unwrap();
+
+    for _ in 0..(size-1) {
+      let nval = queue.take().unwrap();
+      assert!(head <= nval);
+      head = nval;
+    }
+  }
+
+  #[test]
+  fn test_random_maximize() {
+    let mut queue = PriorityQueue::new(100, PriorityMode::MaximizeHead);
+    let size = 100000;
+
+    for _ in 0..size {
+      let rval: usize = random();
+      queue.insert(rval, rval);
+    }
+
+    let mut head = queue.take().unwrap();
+
+    for _ in 0..(size-1) {
+      let nval = queue.take().unwrap();
+      assert!(head >= nval);
+      head = nval;
+    }
+  }
 }
